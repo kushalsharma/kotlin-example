@@ -9,22 +9,27 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import xyz.kushal.extentions.toast
-
+import xyz.kushal.extentions.updateDataList
 
 class MainActivity : AppCompatActivity() {
+    val dataList = mutableListOf<Int>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         val recyclerView = findViewById(R.id.main_activity_recycler_view) as RecyclerView
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = RecyclerAdapter(recyclerList = listOf("Google", "Square", "Flipkart")) { recyclerItemText ->
-            toast(recyclerItemText)
+        val layoutManager = LinearLayoutManager(this)
+        val adapter = RecyclerAdapter(recyclerList = updateDataList(dataList)) { recyclerItemText ->
+            toast(recyclerItemText.toString())
         }
+        recyclerView.layoutManager = layoutManager
+        recyclerView.adapter = adapter
+        recyclerView.addOnScrollListener(OnScrollListener(layoutManager, adapter, dataList))
     }
 }
 
-class RecyclerAdapter(val recyclerList: List<String>, val itemClicked: (String) -> Unit) : RecyclerView.Adapter<RecyclerAdapter.ViewHolder>() {
+class RecyclerAdapter(val recyclerList: List<Int>, val itemClicked: (Int) -> Unit) : RecyclerView.Adapter<RecyclerAdapter.ViewHolder>() {
     override fun onBindViewHolder(viewHolder: RecyclerAdapter.ViewHolder, position: Int) {
         viewHolder.bind(recyclerList[position])
     }
@@ -38,12 +43,43 @@ class RecyclerAdapter(val recyclerList: List<String>, val itemClicked: (String) 
         return recyclerList.count()
     }
 
-    class ViewHolder(itemView: View, val itemClicked: (String) -> Unit) : RecyclerView.ViewHolder(itemView) {
+    class ViewHolder(itemView: View, val itemClicked: (Int) -> Unit) : RecyclerView.ViewHolder(itemView) {
         val itemTextView = itemView.findViewById(R.id.recycler_row_text_view) as TextView
 
-        fun bind(recyclerItemText: String) {
-            itemTextView.text = recyclerItemText
+        fun bind(recyclerItemText: Int) {
+            itemTextView.text = recyclerItemText.toString()
             itemTextView.setOnClickListener { itemClicked(recyclerItemText) }
+        }
+    }
+}
+
+class OnScrollListener(val layoutManager: LinearLayoutManager, val adapter: RecyclerView.Adapter<RecyclerAdapter.ViewHolder>, val dataList: MutableList<Int>) : RecyclerView.OnScrollListener() {
+    var previousTotal = 0
+    var loading = true
+    val visibleThreshold = 10
+    var firstVisibleItem = 0
+    var visibleItemCount = 0
+    var totalItemCount = 0
+
+    override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+        super.onScrolled(recyclerView, dx, dy)
+
+        visibleItemCount = recyclerView.childCount
+        totalItemCount = layoutManager.itemCount
+        firstVisibleItem = layoutManager.findFirstVisibleItemPosition()
+
+        if (loading) {
+            if (totalItemCount > previousTotal) {
+                loading = false
+                previousTotal = totalItemCount
+            }
+        }
+        if (!loading && (totalItemCount - visibleItemCount) <= (firstVisibleItem + visibleThreshold)) {
+            val initialSize = dataList.size
+            updateDataList(dataList)
+            val updatedSize = dataList.size
+            recyclerView.post { adapter.notifyItemRangeInserted(initialSize, updatedSize) }
+            loading = true
         }
     }
 }
