@@ -1,4 +1,4 @@
-### This example Android application in Kotlin showcases sample code for 
+### This example Android application in Kotlin showcase sample code for
 
 - RecyclerView implementation 
 - Extension for toast
