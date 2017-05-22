@@ -40,6 +40,7 @@ class RecyclerAdapter(val recyclerList: List<String>, val itemClicked: (String) 
 
     class ViewHolder(itemView: View, val itemClicked: (String) -> Unit) : RecyclerView.ViewHolder(itemView) {
         val itemTextView = itemView.findViewById(R.id.recycler_row_text_view) as TextView
+
         fun bind(recyclerItemText: String) {
             itemTextView.text = recyclerItemText
             itemTextView.setOnClickListener { itemClicked(recyclerItemText) }
