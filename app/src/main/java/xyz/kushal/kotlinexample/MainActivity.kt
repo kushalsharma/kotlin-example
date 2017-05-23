@@ -23,6 +23,7 @@ class MainActivity : AppCompatActivity() {
         val adapter = RecyclerAdapter(recyclerList = updateDataList(dataList)) { recyclerItemText ->
             toast(recyclerItemText.toString())
         }
+
         recyclerView.layoutManager = layoutManager
         recyclerView.adapter = adapter
         recyclerView.addOnScrollListener(OnScrollListener(layoutManager, adapter, dataList))
@@ -74,6 +75,7 @@ class OnScrollListener(val layoutManager: LinearLayoutManager, val adapter: Recy
                 previousTotal = totalItemCount
             }
         }
+
         if (!loading && (totalItemCount - visibleItemCount) <= (firstVisibleItem + visibleThreshold)) {
             val initialSize = dataList.size
             updateDataList(dataList)
